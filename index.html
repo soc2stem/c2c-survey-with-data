@@ -198,14 +198,16 @@
         <form id="surveyForm"></form>
 
         <div class="controls">
-          <button type="button" class="primary" id="submitBtn">Save My Responses</button>
+          <button type="button" class="primary" id="submitBtn">Get My Personalized Links</button>
           <button type="button" id="resetBtn">Reset</button>
           <button type="button" id="copyBtn">Copy Links</button>
           <button type="button" id="downloadBtn">Download CSV</button>
         </div>
 
         <div class="status" id="logStatus" style="display:none;"></div>
-        <div class="results" id="results"></div>
+
+        <!-- Hidden until they click the button -->
+        <div class="results" id="results" style="display:none;"></div>
       </section>
     </main>
   </div>
@@ -350,7 +352,7 @@ const config = {
         {label:'Career Fair',url:'https://utexas.instructure.com/courses/1365574/pages/career-fair'}
       ],
       jobsearch:[
-        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash/job-search-strategies'.replace('/job-search','job-search')}
+        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash-job-search-strategies'}
       ]
     },
 
@@ -371,7 +373,7 @@ const config = {
       experience:[
         {label:'Networking and Informational Interviews',url:'https://utexas.instructure.com/courses/1365574/pages/networking-and-informational-interviews'},
         {label:'Career Fair',url:'https://utexas.instructure.com/courses/1365574/pages/career-fair'},
-        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash/job-search-strategies'.replace('/job-search','job-search')}
+        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash-job-search-strategies'}
       ],
       programs:[
         {label:'Exploring and Preparing for Graduate School',url:'https://utexas.instructure.com/courses/1365574/pages/exploring-and-preparing-for-graduate-school'},
@@ -385,10 +387,7 @@ const config = {
 
 
 // ================= FORMSPREE LOGGING =================
-// Your Formspree endpoint:
 const FORMSPREE_URL = "https://formspree.io/f/xlggeyeo";
-
-// Prevent spamming duplicate submissions (per page load)
 let hasSubmittedThisSession = false;
 
 function showLogStatus(msg) {
@@ -420,7 +419,6 @@ function flattenAnswersForLogging(answers) {
 }
 
 async function logToFormspree(answers, groups) {
-  // optional: include what links they were shown
   const links_shown = Object.entries(groups).flatMap(([group, items]) =>
     items.map(it => `${group}: ${it.label} — ${it.url}`)
   );
@@ -430,7 +428,6 @@ async function logToFormspree(answers, groups) {
     links_shown: links_shown.join("\n")
   };
 
-  // Formspree accepts JSON; include Accept so you get JSON back.
   const res = await fetch(FORMSPREE_URL, {
     method: "POST",
     headers: {
@@ -440,7 +437,6 @@ async function logToFormspree(answers, groups) {
     body: JSON.stringify(payload)
   });
 
-  // If Formspree blocks or errors, this will throw in the caller
   if (!res.ok) {
     let detail = "";
     try {
@@ -475,7 +471,6 @@ function renderForm(){
     label.className = 'prompt';
     label.textContent = q.text;
 
-    // Add "why we ask this" tooltip if present
     if (q.help) {
       const tooltip = document.createElement('span');
       tooltip.className = 'tooltip-wrap';
@@ -593,7 +588,7 @@ function getAnswers(){
 
 // ----------- Progress Tracking --------------
 function computeProgress(answers){
-  const total = config.questions.length; // 6
+  const total = config.questions.length;
   let completed = 0;
 
   config.questions.forEach(q => {
@@ -624,12 +619,10 @@ function updateProgress(){
 function buildRecommendations(answers){
   const groups={};
 
-  // Academic year
   if(answers.year && config.links.year[answers.year]?.url){
     groups['Academic Year']=[config.links.year[answers.year]];
   }
 
-  // Core planning – ONLY show when pathway = 'unsure'
   if (answers.pathway === 'unsure') {
     groups['Getting Started'] = [
       config.links.core.career_exploration,
@@ -639,7 +632,6 @@ function buildRecommendations(answers){
     ].filter(x => x && x.url);
   }
 
-  // Career pathway
   if(answers.pathway){
     const arr=config.links.pathways[answers.pathway] || [];
     const filtered=arr.filter(x=>x.url);
@@ -648,7 +640,6 @@ function buildRecommendations(answers){
     }
   }
 
-  // Professional materials
   const m=answers.materials||{};
   if(m.resume_ok==='not_confident'){
     const item=config.links.materials.resume;
@@ -686,7 +677,6 @@ function buildRecommendations(answers){
     }
   }
 
-  // Research & academic engagement
   if(answers.research_interest==='research'){
     const items=(config.links.pathways.research || []).filter(x=>x.url);
     if(items.length){
@@ -702,7 +692,6 @@ function buildRecommendations(answers){
     }
   }
 
-  // Skills & self-development
   if(Array.isArray(answers.skills)){
     answers.skills.forEach(s=>{
       const item=config.links.selfdev[s];
@@ -713,7 +702,6 @@ function buildRecommendations(answers){
     });
   }
 
-  // Exploration & planning
   if(answers.planning){
     const arr=config.links.exploration[answers.planning] || [];
     const filtered=arr.filter(x=>x.url);
@@ -765,56 +753,65 @@ function renderResults(groups, answers){
 }
 
 
-// ----------- Live updates --------------
+// ----------- Only update progress during answering --------------
 formEl.addEventListener('change', () => {
   updateProgress();
-  const ans = getAnswers();
-  const groups = buildRecommendations(ans);
-  renderResults(groups, ans);
+  // IMPORTANT: no results render here anymore
 });
 
 
 // ----------- Buttons --------------
 document.getElementById('submitBtn').addEventListener('click', async ()=>{
   const answers = getAnswers();
-  const groups = buildRecommendations(answers);
-  renderResults(groups, answers);
-
   const { completed, total } = computeProgress(answers);
+
   if (completed < total) {
-    showLogStatus(`Almost there: please answer ${total - completed} more question(s), then click “Save My Responses” again.`);
+    // Keep results hidden if not complete
+    resultsEl.style.display = 'none';
+    showLogStatus(`Almost there: please answer ${total - completed} more question(s), then click the button again.`);
     return;
   }
 
   if (hasSubmittedThisSession) {
-    showLogStatus("Saved already. If you need to submit again, refresh the page first.");
-    return;
+    showLogStatus("You’re all set. If you need to submit again, refresh the page first.");
+    // Still allow them to view results again without logging again
+  } else {
+    showLogStatus("Saving your responses…");
+    try {
+      const groupsForLogging = buildRecommendations(answers);
+      await logToFormspree(answers, groupsForLogging);
+      hasSubmittedThisSession = true;
+      showLogStatus("Saved. Here are your personalized links:");
+    } catch (err) {
+      showLogStatus("Could not save right now. Please try again in a moment.");
+      console.warn(err);
+      return; // don’t show results if saving failed
+    }
   }
 
-  showLogStatus("Saving your responses…");
-
-  try {
-    await logToFormspree(answers, groups);
-    hasSubmittedThisSession = true;
-    showLogStatus("Saved. Thank you!");
-  } catch (err) {
-    showLogStatus("Could not save right now. Please try again in a moment.");
-    console.warn(err);
-  }
+  // Now show results ONLY after successful save (or after already-saved)
+  const groups = buildRecommendations(answers);
+  renderResults(groups, answers);
+  resultsEl.style.display = 'block';
 });
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   formEl.reset();
   resultsEl.innerHTML='';
+  resultsEl.style.display = 'none';
   document.getElementById('logStatus').style.display = 'none';
   hasSubmittedThisSession = false;
   updateProgress();
 });
 
 document.getElementById('copyBtn').addEventListener('click', ()=>{
+  // Only allow copying after results are visible
+  if (resultsEl.style.display === 'none') { alert('Click “Get My Personalized Links” first.'); return; }
+
   const ans=getAnswers();
   const groups=buildRecommendations(ans);
   if(Object.keys(groups).length===0){ alert('No links to copy'); return; }
+
   const lines=[];
   for(const [g,items] of Object.entries(groups)){
     items.forEach(it=>lines.push(`${g}: ${it.label} — ${it.url}`));
@@ -823,6 +820,9 @@ document.getElementById('copyBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  // Only allow downloading after results are visible
+  if (resultsEl.style.display === 'none') { alert('Click “Get My Personalized Links” first.'); return; }
+
   const ans=getAnswers();
   const groups=buildRecommendations(ans);
   if(Object.keys(groups).length===0){ alert('No links'); return; }
@@ -839,9 +839,9 @@ document.getElementById('downloadBtn').addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-// Initialize progress + initial empty results once
+// Initialize progress only (keep results hidden)
 updateProgress();
-renderResults(buildRecommendations(getAnswers()), getAnswers());
 </script>
 </body>
 </html>
+
