@@ -28,9 +28,7 @@
     header p { margin:0; color: var(--muted); }
 
     /* Progress bar */
-    .progress-wrap {
-      margin: 0 0 16px 0;
-    }
+    .progress-wrap { margin: 0 0 16px 0; }
     .progress-label {
       font-size: 13px;
       color: var(--muted);
@@ -81,13 +79,7 @@
       cursor: help;
       flex-shrink: 0;
     }
-
-    .tooltip-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-    }
-
+    .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
     .tooltip-text {
       visibility: hidden;
       width: 260px;
@@ -105,7 +97,6 @@
       font-size: 12px;
       line-height: 1.35;
     }
-
     .tooltip-text::after {
       content: "";
       position: absolute;
@@ -115,11 +106,7 @@
       border-style: solid;
       border-color: #1a1a1a transparent transparent transparent;
     }
-
-    .tooltip-wrap:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
+    .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
 
     .opt {
       display: grid;
@@ -138,9 +125,7 @@
       gap:10px;
       margin-top:16px;
     }
-    .controls button {
-      flex: 1 1 160px;
-    }
+    .controls button { flex: 1 1 160px; }
     button, .btn-link {
       border: 1px solid var(--border);
       background: #ffffff;
@@ -157,79 +142,38 @@
       color: white;
     }
 
-    .summary { margin-top: 18px; }
-    .summary-card {
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:14px;
-      background:#fafafa;
-    }
-    .summary h3 {
-      margin:0 0 10px;
-      font-size:18px;
-      color:var(--accent);
-    }
-    .summary-group {
-      margin-bottom:10px;
-      font-size:14px;
-    }
-    .summary-group strong {
-      display:block;
-      margin-bottom:2px;
-    }
-    .summary-footer {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:12px;
-    }
-
     .results { margin-top: 18px; }
     .group { margin-top: 18px; }
     .group h4 { margin: 0 0 10px; color: var(--accent); }
-    .link { display:block; padding:12px 14px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; text-decoration:none; color:var(--accent); font-weight:600; }
+    .link {
+      display:block;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      margin-bottom:10px;
+      text-decoration:none;
+      color:var(--accent);
+      font-weight:600;
+    }
     .link:hover { border-color: var(--accent); background:#fff4ec; }
-    .hr { height: 1px; background: var(--border); border:0; margin: 18px 0; }
     .muted { color: var(--muted); }
-    .pill { display:inline-block; border:1px solid var(--border); border-radius:999px; padding:3px 8px; font-size:11px; margin-left:6px; background:#fff4ec; color:var(--accent); }
-  
-    /* Embedded Google Form (feedback) */
-    .gform-section{
-      margin: 16px 0 10px;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: #ffffff;
+    .pill {
+      display:inline-block;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:3px 8px;
+      font-size:11px;
+      margin-left:6px;
+      background:#fff4ec;
+      color:var(--accent);
     }
-    .gform-section h3{
-      margin: 0 0 6px;
-      font-size: 16px;
-      color: var(--accent);
-    }
-    .gform-section .muted{
-      margin: 0 0 12px;
+
+    /* Small status message (Formspree) */
+    .status {
+      margin-top: 10px;
       font-size: 13px;
+      color: var(--muted);
     }
-    .gform-embed{
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      background: #fafafa;
-    }
-    .gform-embed iframe{
-      display: block;
-      width: 100%;
-      height: 1205px;
-      border: 0;
-    }
-
-  
-    /* Hide copy/download until results are shown */
-    .post-results-only {
-      display: none;
-    }
-
   </style>
 </head>
 <body>
@@ -254,11 +198,13 @@
         <form id="surveyForm"></form>
 
         <div class="controls">
-          <button class="primary" id="submitBtn" type="button">Review My Responses</button>
+          <button type="button" class="primary" id="submitBtn">Save My Responses</button>
           <button type="button" id="resetBtn">Reset</button>
-                  </div>
+          <button type="button" id="copyBtn">Copy Links</button>
+          <button type="button" id="downloadBtn">Download CSV</button>
+        </div>
 
-        <div class="summary" id="summary"></div>
+        <div class="status" id="logStatus" style="display:none;"></div>
         <div class="results" id="results"></div>
       </section>
     </main>
@@ -404,7 +350,7 @@ const config = {
         {label:'Career Fair',url:'https://utexas.instructure.com/courses/1365574/pages/career-fair'}
       ],
       jobsearch:[
-        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash-job-search-strategies'}
+        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash/job-search-strategies'.replace('/job-search','job-search')}
       ]
     },
 
@@ -425,7 +371,7 @@ const config = {
       experience:[
         {label:'Networking and Informational Interviews',url:'https://utexas.instructure.com/courses/1365574/pages/networking-and-informational-interviews'},
         {label:'Career Fair',url:'https://utexas.instructure.com/courses/1365574/pages/career-fair'},
-        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash-job-search-strategies'}
+        {label:'Internship/Job Search Strategies',url:'https://utexas.instructure.com/courses/1365574/pages/internship-slash/job-search-strategies'.replace('/job-search','job-search')}
       ],
       programs:[
         {label:'Exploring and Preparing for Graduate School',url:'https://utexas.instructure.com/courses/1365574/pages/exploring-and-preparing-for-graduate-school'},
@@ -438,10 +384,77 @@ const config = {
 // ================= END CONFIG =================
 
 
+// ================= FORMSPREE LOGGING =================
+// Your Formspree endpoint:
+const FORMSPREE_URL = "https://formspree.io/f/xlggeyeo";
+
+// Prevent spamming duplicate submissions (per page load)
+let hasSubmittedThisSession = false;
+
+function showLogStatus(msg) {
+  const el = document.getElementById('logStatus');
+  el.style.display = 'block';
+  el.textContent = msg;
+}
+
+function flattenAnswersForLogging(answers) {
+  const m = answers.materials || {};
+  return {
+    submitted_at: new Date().toISOString(),
+    page_url: window.location.href,
+    user_agent: navigator.userAgent,
+
+    year: answers.year || "",
+    pathway: answers.pathway || "",
+
+    materials_resume_ok: m.resume_ok || "",
+    materials_cover_ok: m.cover_ok || "",
+    materials_interview_ok: m.interview_ok || "",
+    materials_network_ok: m.network_ok || "",
+    materials_jobsearch_ok: m.jobsearch_ok || "",
+
+    research_interest: answers.research_interest || "",
+    planning: answers.planning || "",
+    skills: Array.isArray(answers.skills) ? answers.skills.join(", ") : ""
+  };
+}
+
+async function logToFormspree(answers, groups) {
+  // optional: include what links they were shown
+  const links_shown = Object.entries(groups).flatMap(([group, items]) =>
+    items.map(it => `${group}: ${it.label} — ${it.url}`)
+  );
+
+  const payload = {
+    ...flattenAnswersForLogging(answers),
+    links_shown: links_shown.join("\n")
+  };
+
+  // Formspree accepts JSON; include Accept so you get JSON back.
+  const res = await fetch(FORMSPREE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  // If Formspree blocks or errors, this will throw in the caller
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const j = await res.json();
+      detail = j && j.error ? ` (${j.error})` : "";
+    } catch (_) {}
+    throw new Error(`Formspree error${detail}`);
+  }
+}
+
+
 // ----------- DOM References --------------
 const formEl = document.getElementById('surveyForm');
 const resultsEl = document.getElementById('results');
-const summaryEl = document.getElementById('summary');
 const progressFill = document.getElementById('progressFill');
 const progressText = document.getElementById('progressText');
 
@@ -487,13 +500,16 @@ function renderForm(){
         const id = `${q.id}_${idx}`;
         const row = document.createElement('label');
         row.className = 'opt';
+
         const input = document.createElement('input');
         input.type = q.type === 'multi' ? 'checkbox':'radio';
         input.name = q.id;
         input.value = opt.value;
         input.id = id;
+
         const span = document.createElement('span');
         span.textContent = opt.label;
+
         row.appendChild(input);
         row.appendChild(span);
         div.appendChild(row);
@@ -509,6 +525,7 @@ function renderForm(){
       q.cols.forEach(c=>{
         const th=document.createElement('th');
         th.style.padding='6px';
+        th.style.textAlign='left';
         th.textContent=c.label;
         trh.appendChild(th);
       });
@@ -518,18 +535,23 @@ function renderForm(){
       const tbody=document.createElement('tbody');
       q.rows.forEach((r)=>{
         const tr=document.createElement('tr');
+
         const tdLabel=document.createElement('td');
         tdLabel.textContent=r.label;
+        tdLabel.style.padding='6px';
         tr.appendChild(tdLabel);
 
         q.cols.forEach((c,cidx)=>{
           const td=document.createElement('td');
+          td.style.padding='6px';
+
           const id=`${q.id}_${r.id}_${cidx}`;
           const input=document.createElement('input');
           input.type='radio';
           input.name=r.id;
           input.value=c.value;
           input.id=id;
+
           td.appendChild(input);
           tr.appendChild(td);
         });
@@ -597,9 +619,6 @@ function updateProgress(){
   progressText.textContent = `${completed} of ${total} questions answered`;
 }
 
-// Update progress on any change
-formEl.addEventListener('change', updateProgress);
-
 
 // ----------- Build Recommendations --------------
 function buildRecommendations(answers){
@@ -617,7 +636,7 @@ function buildRecommendations(answers){
       config.links.core.game_plan,
       config.links.core.general_resources,
       config.links.core.strategies_for_success
-    ];
+    ].filter(x => x && x.url);
   }
 
   // Career pathway
@@ -633,34 +652,34 @@ function buildRecommendations(answers){
   const m=answers.materials||{};
   if(m.resume_ok==='not_confident'){
     const item=config.links.materials.resume;
-    if(item.url){
+    if(item?.url){
       groups['Professional Materials'] ??=[];
       groups['Professional Materials'].push(item);
     }
   }
   if(m.cover_ok==='not_confident'){
     const item=config.links.materials.cover;
-    if(item.url){
+    if(item?.url){
       groups['Professional Materials'] ??=[];
       groups['Professional Materials'].push(item);
     }
   }
   if(m.interview_ok==='not_confident'){
-    const items=config.links.materials.interview.filter(x=>x.url);
+    const items=(config.links.materials.interview || []).filter(x=>x.url);
     if(items.length){
       groups['Professional Materials'] ??=[];
       groups['Professional Materials'].push(...items);
     }
   }
   if(m.network_ok==='not_confident'){
-    const items=config.links.materials.networking.filter(x=>x.url);
+    const items=(config.links.materials.networking || []).filter(x=>x.url);
     if(items.length){
       groups['Professional Materials'] ??=[];
       groups['Professional Materials'].push(...items);
     }
   }
   if(m.jobsearch_ok==='not_confident'){
-    const items=config.links.materials.jobsearch.filter(x=>x.url);
+    const items=(config.links.materials.jobsearch || []).filter(x=>x.url);
     if(items.length){
       groups['Professional Materials'] ??=[];
       groups['Professional Materials'].push(...items);
@@ -669,14 +688,14 @@ function buildRecommendations(answers){
 
   // Research & academic engagement
   if(answers.research_interest==='research'){
-    const items=config.links.pathways.research.filter(x=>x.url);
+    const items=(config.links.pathways.research || []).filter(x=>x.url);
     if(items.length){
       groups['Research & Academic Engagement'] = items;
     }
   } else if(answers.research_interest==='grad_teach'){
     const items=[
-      ...config.links.pathways.grad,
-      ...config.links.pathways.research
+      ...(config.links.pathways.grad || []),
+      ...(config.links.pathways.research || [])
     ].filter(x=>x.url);
     if(items.length){
       groups['Research & Academic Engagement'] = items;
@@ -704,157 +723,6 @@ function buildRecommendations(answers){
   }
 
   return groups;
-}
-
-
-// ----------- Summary Rendering --------------
-function mapOptionLabel(questionId, value){
-  const q = config.questions.find(q => q.id === questionId);
-  if (!q) return value;
-  if (q.type === 'single' || q.type === 'multi') {
-    const opt = q.options.find(o => o.value === value);
-    return opt ? opt.label : value;
-  }
-  return value;
-}
-
-function mapMatrixLabel(rowId, value){
-  const q = config.questions.find(q => q.id === 'materials');
-  if (!q) return value;
-  const col = q.cols.find(c => c.value === value);
-  return col ? col.label : value;
-}
-
-function renderSummary(answers){
-  summaryEl.innerHTML = '';
-  resultsEl.innerHTML = '';
-
-  const card = document.createElement('div');
-  card.className = 'summary-card';
-
-  const h = document.createElement('h3');
-  h.textContent = 'Review your responses';
-  card.appendChild(h);
-
-  config.questions.forEach(q => {
-    const group = document.createElement('div');
-    group.className = 'summary-group';
-
-    const title = document.createElement('strong');
-    title.textContent = q.legend;
-    group.appendChild(title);
-
-    let content = '';
-
-    if (q.type === 'single') {
-      const val = answers[q.id];
-      content = val ? mapOptionLabel(q.id, val) : 'No selection';
-    } else if (q.type === 'multi') {
-      const vals = answers[q.id] || [];
-      if (vals.length === 0) {
-        content = 'No selections';
-      } else {
-        content = vals.map(v => mapOptionLabel(q.id, v)).join(', ');
-      }
-    } else if (q.type === 'matrix') {
-      const vals = answers[q.id] || {};
-      const lines = q.rows.map(r => {
-        const v = vals[r.id];
-        if (!v) return `${r.label}: (no response)`;
-        return `${r.label}: ${mapMatrixLabel(r.id, v)}`;
-      });
-      content = lines.join(' • ');
-    }
-
-    const p = document.createElement('span');
-    p.textContent = content;
-    group.appendChild(p);
-
-    card.appendChild(group);
-  });
-
-  // --- Feedback form (Google Form) above personalized links ---
-  const gf = document.createElement('div');
-  gf.className = 'gform-section';
-  gf.setAttribute('aria-label','Feedback Form');
-
-  const gfh = document.createElement('h3');
-  gfh.textContent = 'Feedback Survey';
-  gf.appendChild(gfh);
-
-  const gfp = document.createElement('p');
-  gfp.className = 'muted';
-  gfp.textContent = 'Please complete the brief feedback form below before viewing your personalized links.';
-  gf.appendChild(gfp);
-
-  const wrap = document.createElement('div');
-  wrap.className = 'gform-embed';
-
-  const iframe = document.createElement('iframe');
-  iframe.src = 'https://docs.google.com/forms/d/e/1FAIpQLSe1DwbtpQK8LjwLUB5UjzWvtOWPOw2I5OpQqPMzNHlL5qjpjA/viewform?embedded=true';
-  iframe.loading = 'lazy';
-  iframe.title = 'Feedback Survey (Google Form)';
-  wrap.appendChild(iframe);
-
-  gf.appendChild(wrap);
-
-  card.appendChild(gf);
-
-
-
-  const footer = document.createElement('div');
-  footer.className = 'summary-footer';
-
-  const confirmBtn = document.createElement('button');
-  confirmBtn.type = 'button';
-  confirmBtn.className = 'primary';
-  confirmBtn.textContent = 'See My Personalized Links';
-
-  const editBtn = document.createElement('button');
-  editBtn.type = 'button';
-  editBtn.textContent = 'Go Back and Edit';
-
-  footer.appendChild(confirmBtn);
-  footer.appendChild(editBtn);
-
-  const copyBtn = document.createElement('button');
-  copyBtn.type = 'button';
-  copyBtn.id = 'copyBtn';
-  copyBtn.textContent = 'Copy Links';
-  copyBtn.style.display = 'none';
-
-  const downloadBtn = document.createElement('button');
-  downloadBtn.type = 'button';
-  downloadBtn.id = 'downloadBtn';
-  downloadBtn.textContent = 'Download CSV';
-  downloadBtn.style.display = 'none';
-
-  footer.appendChild(copyBtn);
-  footer.appendChild(downloadBtn);
-
-  card.appendChild(footer);
-
-  summaryEl.appendChild(card);
-
-  confirmBtn.addEventListener('click', () => {
-    const groups = buildRecommendations(answers);
-    renderResults(groups, answers);
-    window.scrollTo({ top: summaryEl.offsetTop, behavior: 'smooth' });
-
-  document.getElementById('copyBtn').style.display = 'inline-block';
-  document.getElementById('downloadBtn').style.display = 'inline-block';
-
-
-  // Show post-results buttons
-  document.getElementById('copyBtn').style.display = 'inline-block';
-  document.getElementById('downloadBtn').style.display = 'inline-block';
-
-  });
-
-  editBtn.addEventListener('click', () => {
-    summaryEl.innerHTML = '';
-    window.scrollTo({ top: formEl.offsetTop, behavior: 'smooth' });
-  });
 }
 
 
@@ -897,28 +765,49 @@ function renderResults(groups, answers){
 }
 
 
-// ----------- Buttons --------------
-document.getElementById('submitBtn').addEventListener('click', ()=>{
-  const ans=getAnswers();
-  const { completed } = computeProgress(ans);
+// ----------- Live updates --------------
+formEl.addEventListener('change', () => {
+  updateProgress();
+  const ans = getAnswers();
+  const groups = buildRecommendations(ans);
+  renderResults(groups, ans);
+});
 
-  if (completed === 0) {
-    alert('Please answer at least one question before reviewing your responses.');
+
+// ----------- Buttons --------------
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const answers = getAnswers();
+  const groups = buildRecommendations(answers);
+  renderResults(groups, answers);
+
+  const { completed, total } = computeProgress(answers);
+  if (completed < total) {
+    showLogStatus(`Almost there: please answer ${total - completed} more question(s), then click “Save My Responses” again.`);
     return;
   }
 
-  renderSummary(ans);
-  window.scrollTo({ top: summaryEl.offsetTop, behavior: 'smooth' });
+  if (hasSubmittedThisSession) {
+    showLogStatus("Saved already. If you need to submit again, refresh the page first.");
+    return;
+  }
+
+  showLogStatus("Saving your responses…");
+
+  try {
+    await logToFormspree(answers, groups);
+    hasSubmittedThisSession = true;
+    showLogStatus("Saved. Thank you!");
+  } catch (err) {
+    showLogStatus("Could not save right now. Please try again in a moment.");
+    console.warn(err);
+  }
 });
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   formEl.reset();
   resultsEl.innerHTML='';
-  summaryEl.innerHTML='';
-  const cb=document.getElementById('copyBtn'); if(cb) cb.style.display='none';
-  const db=document.getElementById('downloadBtn'); if(db) db.style.display='none';
-  document.getElementById('copyBtn').style.display='none';
-  document.getElementById('downloadBtn').style.display='none';
+  document.getElementById('logStatus').style.display = 'none';
+  hasSubmittedThisSession = false;
   updateProgress();
 });
 
@@ -942,16 +831,17 @@ document.getElementById('downloadBtn').addEventListener('click', ()=>{
   for(const [g,items] of Object.entries(groups)){
     items.forEach(it=>rows.push([g,it.label,it.url]));
   }
-  const csv=rows.map(r=>r.map(x=>`"${x}"`).join(',')).join("\n");
-  const blob=new Blob([csv],{type:'text/csv'});
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join("\n");
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url; a.download='links.csv'; a.click();
   URL.revokeObjectURL(url);
 });
 
-// Initialize progress once
+// Initialize progress + initial empty results once
 updateProgress();
+renderResults(buildRecommendations(getAnswers()), getAnswers());
 </script>
 </body>
 </html>
